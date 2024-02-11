@@ -179,6 +179,13 @@
 * ${#locale}
 > SpringBoot 3.0에서 부터는 직접 model에 해당 객체를 추가해서 사용해야한다.
 
+* 여기서 `#request`는 `HttpServletRequest` 객체가 그대로 제공되기 때문에 데이터를 조회하려면 `request.getParameter("data")`와 같이 불편하게 접근해야한다.
+* 이러한 점을 해결하기 위해 편의 객체도 제공된다.
+  + HTTP 요청 파라미터 접근: `param` ( 예 : `${param.paramData}`)
+  + HTTP 세션 접근: `session` ( 예 : `${session.sessionData}`)
+  + 스프링 빈 접근: `@` ( 예 : `&{@helloBean.hello('Spring!')}`)
+
+
 ### 6.2. 스프링부트1.0~2.0(3.0미만)
 ```java
 @GetMapping("/basic-objects")
@@ -220,8 +227,9 @@ static class HelloBean {
   </body>
 </html>
 ```
-* 원래라면 `request.getParameter("data")` 처럼 불편하게 접근해야하지만
-* 제공하는 기본객체인 `#request`를 사용하여 `HttpServletRequest` 객체를 제공받아 편하게 사용한다.
+* 기본객체사용예제
+* 편의객체사용예제
+
 
 ### 6.3. 스프링부트 3.0 이상
 > 스프링부트 3.0 이상 부터는 이 기능이 Locale 제외하고는 사용할 수 없다.
@@ -269,13 +277,159 @@ static class HelloBean {
 ```
 * 위 결과와 같은 결과가 나온다.
 
+***
+# 7. 유틸리티 객체와 날짜
+### 7.1. 타임리프 유틸리티 객체들
+* `#message`: 메시지, 국제화 처리
+* `#uris`:URI 이스케이프 지원
+* `#dates`: `java.util.Date` 서식 지원
+* `#calendars`: `java.util.Calendar` 서식 지원
+* `#temporals`: 자바8 날짜 서식 지원
+* `#numbers`: 숫자 서식 지원
+* `#strings`: 문자 관련 편의 기능
+* `#objects`: 객체 관련 기능 제공
+* `#bools`: boolean 관련 기능 제공
+* `#arrays`: 배열 관련 기능 제공
+* `#lists`,`#sets`,`#maps`: 컬렉션 관련 기능 제공
+* `#ids`: 아이디 처리 관련 기능 제공
 
+### 7.2. 자바8 날짜
+* 타임리프 자바8 날짜 지원 라이브러리 : `thymeleaf-extras-java8time`
+* 자바8 날짜용 유틸리티 객체 : `#temporals`
 
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <h1>LocalDateTime</h1>
+    <ul>
+      <li>default = <span th:text="${localDateTime}"></span></li>
+      <li>yyyy-MM-dd HH:mm:ss = <span th:text="${#temporals.format(localDateTime,'yyyy-MM-dd HH:mm:ss')}"></span></li>
+    </ul>
+    <h1>LocalDateTime - Utils</h1>
+    <ul>
+      <li>${#temporals.day(localDateTime)} = <span th:text="${#temporals.day(localDateTime)}"></span></li>
+      <li>${#temporals.month(localDateTime)} = <span th:text="${#temporals.month(localDateTime)}"></span></li>
+      <li>${#temporals.monthName(localDateTime)} = <span th:text="${#temporals.monthName(localDateTime)}"></span></li>
+      <li>${#temporals.monthNameShort(localDateTime)} = <span th:text="${#temporals.monthNameShort(localDateTime)}"></span></li>
+      <li>${#temporals.year(localDateTime)} = <span th:text="${#temporals.year(localDateTime)}"></span></li>
+      <li>${#temporals.dayOfWeek(localDateTime)} = <span th:text="${#temporals.dayOfWeek(localDateTime)}"></span></li>
+      <li>${#temporals.dayOfWeekName(localDateTime)} = <span th:text="${#temporals.dayOfWeekName(localDateTime)}"></span></li>
+      <li>${#temporals.dayOfWeekNameShort(localDateTime)} = <span th:text="${#temporals.dayOfWeekNameShort(localDateTime)}"></span></li>
+      <li>${#temporals.hour(localDateTime)} = <span th:text="${#temporals.hour(localDateTime)}"></span></li>
+      <li>${#temporals.minute(localDateTime)} = <span th:text="${#temporals.minute(localDateTime)}"></span></li>
+      <li>${#temporals.second(localDateTime)} = <span th:text="${#temporals.second(localDateTime)}"></span></li>
+      <li>${#temporals.nanosecond(localDateTime)} = <span th:text="${#temporals.nanosecond(localDateTime)}"></span></li>
+    </ul>
+  </body>
+</html>
+```
+* 사용 예시
 
+***
+# 8. URL 링크
+* 타임리프에서 URL을 생성할 때는 `@{...}` 문법을 사용하면 된다.
+```java
+@GetMapping("/link")
+public String link(Model model) {
+  model.addAttribute("param1", "data1");
+  model.addAttribute("param2", "data2");
+  return "basic/link";
+}
+```
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <h1>URL 링크</h1>
+    <ul>
+      <li><a th:href="@{/hello}">basic url</a></li>
+      <li><a th:href="@{/hello(param1=${param1}, param2=${param2})}">hello query param</a></li>
+      <li><a th:href="@{/hello/{param1}/{param2}(param1=${param1}, param2=${param2})}">path variable</a></li>
+      <li><a th:href="@{/hello/{param1}(param1=${param1}, param2=${param2})}">path variable + query parameter</a></li>
+    </ul>
+  </body>
+</html>
+```
+##### 단순한 URL
+* `@{/hello}` -> `/hello`
+##### 쿼리 파라미터
+* `@{/hello(param1=${param1},param2=${param2})}`
+  + -> `/hello?param1=data1&param2=data2`
+  + `()`에 있는 부분은 쿼리 파라미터로 처리된다.
+##### 경로 변수
+* `@{/hello/{param1}/{param2}(param1=${param1},param2=${param2})}`
+  + ➡️ `/hello/data1/data2`
+  + URL 경로상에 변수가 있으면 `()` 부분은 경로 변수로 처리된다.
+  + 위의 경우는 param1, param2가 앞에 경로에 있기 때문에 경로 변수로 처리되었다.
+  + 쿼리 파라미터의 경우는 경로에 {param1}, {param2}가 없기 때문에 쿼리 파리미터로 처리된다.
+##### 경로 변수 + 쿼리 파라미터
+* `@{/hello/{param1}(param1=${param1}, param2=${param2})}`
+  + ➡️ `/hello/data1/?param2=data2`
+  + 위의 경우도 마찬가지로 앞의 경로에 {param1}이 경로에 있기 때문에 param1은 경로 변수, param2는 쿼리 파라미터로 처리된 것이다.
+  + 경로 변수와 쿼리 파리미터를 함께 사용할 수 있다.
+* 상대경로, 절대경로, 프로토콜 기준을 표현할 수도 있다
+  + `/hello`: 절대경로
+  + `hello`: 상대경로
+ 
 
+***
+# 9. 리터럴
+* 리터럴 : 소스 코드상에서 고정된 값을 말하는 용어
 
+### 9.1. 타임리프 리터럴
+* 문자 : `'hello'`
+* 숫자 : `10`
+* 불린 : `true`,`false`
+* null : `null`
 
+### 9.2. 문자 리터럴
+* 타임리프에서 문자 리터럴은 항상 `'`(작은 따옴표)로 감싸야 한다.
+* `<span th:text="'hello'">`
+* 공백 없이 이어진다면 하나의 의미있는 토큰으로 인지해 작은 따옴표를 생략할 수 있다.
+* `<span th:text="hello">`
+> 룰: `A-Z` , `a-z` , `0-9` , `[]` , `.` , `-` , `_`
 
+##### 오류
+* `<span th:text="hello world!"></span>`
+* 문자 리터럴은 원칙상 `'` 로 감싸야 한다. 중간에 공백이 있어서 하나의 의미있는 토큰으로도 인식되지 않는다.
+
+##### 수정
+* `<span th:text="'hello world!'"></span>`
+* 이렇게 `'` 로 감싸면 정상 동작한다.
+
+### 9.3. 사용예시
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <h1>리터럴</h1>
+    <ul>
+    <!--주의! 다음 주석을 풀면 예외가 발생함-->
+    <!-- <li>"hello world!" = <span th:text="hello world!"></span></li>-->
+      <li>'hello' + ' world!' = <span th:text="'hello' + ' world!'"></span></li>
+      <li>'hello world!' = <span th:text="'hello world!'"></span></li>
+      <li>'hello ' + ${data} = <span th:text="'hello ' + ${data}"></span></li>
+      <li>리터럴 대체 |hello ${data}| = <span th:text="|hello ${data}|"></span></li>
+    </ul>
+  </body>
+</html>
+```
+##### **리터럴 대체(Literal substitutions)**
+* `<span th:text="|hello ${data}|">`
+* 마지막의 리터럴 대체 문법을 사용하면 마치 템플릿을 사용하는 것 처럼 편리하다.
 
 
 
