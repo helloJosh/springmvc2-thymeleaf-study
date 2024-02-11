@@ -432,6 +432,177 @@ public String link(Model model) {
 * 마지막의 리터럴 대체 문법을 사용하면 마치 템플릿을 사용하는 것 처럼 편리하다.
 
 
+***
+# 10. 연산
+* 타임리프 연산은 자바와 다르지 않다. HTML안에서 사용하기 때문에 HTML 엔티티를 사용하는 부분만 조심하면된다.
 
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <ul>
+      <li>산술 연산
+        <ul>
+          <li>10 + 2 = <span th:text="10 + 2"></span></li>
+          <li>10 % 2 == 0 = <span th:text="10 % 2 == 0"></span></li>
+        </ul>
+      </li>
+  
+      <li>비교 연산
+        <ul>
+          <li>1 > 10 = <span th:text="1 &gt; 10"></span></li>
+          <li>1 gt 10 = <span th:text="1 gt 10"></span></li>
+          <li>1 >= 10 = <span th:text="1 >= 10"></span></li>
+          <li>1 ge 10 = <span th:text="1 ge 10"></span></li>
+          <li>1 == 10 = <span th:text="1 == 10"></span></li>
+          <li>1 != 10 = <span th:text="1 != 10"></span></li>
+        </ul>
+      </li>
+  
+      <li>조건식
+      <ul>
+      <li>(10 % 2 == 0)? '짝수':'홀수' = <span th:text="(10 % 2 == 0)? '짝수':'홀수'"></span></li>
+      </ul>
+      </li>
+  
+      <li>Elvis 연산자
+        <ul>
+          <li>${data}?: '데이터가 없습니다.' = <span th:text="${data}?: '데이터가 없습니다.'"></span></li>
+          <li>${nullData}?: '데이터가 없습니다.' = <span th:text="${nullData}?: '데이터가 없습니다.'"></span></li>
+        </ul>
+      </li>
+  
+      <li>No-Operation
+        <ul>
+          <li>${data}?: _ = <span th:text="${data}?: _">데이터가 없습니다.</span></li>
+          <li>${nullData}?: _ = <span th:text="${nullData}?: _">데이터가 없습니다.</span></li>
+        </ul>
+      </li>
+    </ul>
+  </body>
+</html>
+```
+* **비교연산**: HTML 엔티티를 사용해야 하는 부분을 주의하자,
+  + `>` (gt), `<` (lt), `>=` (ge), `<=` (le), `!` (not), `==` (eq), `!=` (neq, ne)
+* **조건식**: 자바의 조건식과 유사하다.
+* **Elvis 연산자**: 조건식의 편의 버전
+* **No-Operation**: `_` 인 경우 마치 타임리프가 실행되지 않는 것 처럼 동작한다. 이것을 잘 사용하면 HTML의 내용 그대로 활용할 수 있다. 마지막 예를 보면 데이터가 없습니다. 부분이 그대로 출력된다.
 
+****
+# 11. 속성 값 설정
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+  <h1>속성 설정</h1>
+  <input type="text" name="mock" th:name="userA" />
+  <h1>속성 추가</h1>
+  - th:attrappend = <input type="text" class="text" th:attrappend="class=' large'" /><br/>
+  - th:attrprepend = <input type="text" class="text" th:attrprepend="class='large'" /><br/>
+  - th:classappend = <input type="text" class="text" th:classappend="large" /><br/>
+  <h1>checked 처리</h1>
+  - checked o <input type="checkbox" name="active" th:checked="true" /><br/>
+  - checked x <input type="checkbox" name="active" th:checked="false" /><br/>
+  - checked=false <input type="checkbox" name="active" checked="false" /><br/>
+  </body>
+</html>
+```
+
+##### 속성 설정
+* th:*` 속성을 지정하면 타임리프는 기존 속성을 `th:*` 로 지정한 속성으로 대체한다. 기존 속성이 없다면 새로 만든다.
+* 예) `<input type="text" name="mock" th:name="userA" />`
+* ➡️ 타임리프 렌더링 후 `<input type="text" name="userA" />`
+
+##### 속성 추가
+* `th:attrappend` : 속성 값의 뒤에 값을 추가한다.
+* `th:attrprepend` : 속성 값의 앞에 값을 추가한다.
+* `th:classappend` : class 속성에 자연스럽게 추가한다.
+
+##### checked 처리
+* HTML에서는 `<input type="checkbox" name="active" checked="false" />` 이 경우에도 checked 속성이 있기 때문에 checked 처리가 되어버린다.
+* HTML에서 `checked` 속성은 `checked` 속성의 값과 상관없이 `checked` 라는 속성만 있어도 체크가 된다. 이런 부분이 `true` , `false` 값을 주로 사용하는 개발자 입장에서는 불편하다.
+* 타임리프의 `th:checked` 는 값이 `false` 인 경우 `checked` 속성 자체를 제거한다.
+  + `<input type="checkbox" name="active" th:checked="false" />`
+  + ➡️ 타임리프 렌더링 후: `<input type="checkbox" name="active" />`
+ 
+
+****
+# 10. 반복
+* 타임리프에서 반복은 `th:each`를 사용한다.
+* 추가로 반복에서 사용할 수 있는 여러 상태 값을 지원한다.
+
+### 10.1. 반복 예시
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <h1>기본 테이블</h1>
+    <table border="1">
+    <tr>
+    <th>username</th>
+    <th>age</th>
+    </tr>
+    <tr th:each="user : ${users}">
+    <td th:text="${user.username}">username</td>
+    <td th:text="${user.age}">0</td>
+    </tr>
+    </table>
+    <h1>반복 상태 유지</h1>
+    <table border="1">
+      <tr>
+        <th>count</th>
+        <th>username</th>
+        <th>age</th>
+        <th>etc</th>
+      </tr>
+      <tr th:each="user, userStat : ${users}">
+        <td th:text="${userStat.count}">username</td>
+        <td th:text="${user.username}">username</td>
+        <td th:text="${user.age}">0</td>
+        <td>
+          index = <span th:text="${userStat.index}"></span>
+          count = <span th:text="${userStat.count}"></span>
+          size = <span th:text="${userStat.size}"></span>
+          even? = <span th:text="${userStat.even}"></span>
+          odd? = <span th:text="${userStat.odd}"></span>
+          first? = <span th:text="${userStat.first}"></span>
+          last? = <span th:text="${userStat.last}"></span>
+          current = <span th:text="${userStat.current}"></span>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+```
+
+##### 반복 기능
+* `<tr th:each="user : ${users}">`
+  + 반복시 오른쪽 컬렉션( `${users}` )의 값을 하나씩 꺼내서 왼쪽 변수( `user` )에 담아서 태그를 반복 실행합니다.
+  + `th:each` 는 `List` 뿐만 아니라 배열, `java.util.Iterable` , `java.util.Enumeration` 을 구현한 모든 객체를 반복에 사용할 수 있습니다. `Map` 도 사용할 수 있는데 이 경우 변수에 담기는 값은 `Map.Entry` 입니다.
+ 
+##### 반복 상태 유지
+* `<tr th:each="user, userStat : ${users}">`
+* 반복의 두번째 파라미터를 설정해서 반복의 상태를 확인 할 수 있습니다.
+* 두번째 파라미터는 생략 가능한데, 생략하면 지정한 변수명( `user` ) + `Stat` 가 됩니다.
+* 여기서는 `user` + `Stat` = `userStat` 이므로 생략 가능합니다.
+
+##### 반복 상태 유지 기능
+* `index` : 0부터 시작하는 값
+* `count` : 1부터 시작하는 값
+* `size` : 전체 사이즈
+* `even` , `odd` : 홀수, 짝수 여부( `boolean` )
+* `first` , `last` :처음, 마지막 여부( `boolean` )
+* `current` : 현재 객체
 
