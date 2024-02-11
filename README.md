@@ -171,6 +171,103 @@
 ****
 # 6. 기본 객체들
 
+### 6.1. 타임리프 기본객체
+* ${#request} - SpringBoot 3.0부터 제공하지 않는다.
+* ${#response} - SpringBoot 3.0부터 제공하지 않는다.
+* ${#session} - SpringBoot 3.0부터 제공하지 않는다.
+* ${#servletContext} - SpringBoot 3.0부터 제공하지 않는다.
+* ${#locale}
+> SpringBoot 3.0에서 부터는 직접 model에 해당 객체를 추가해서 사용해야한다.
+
+### 6.2. 스프링부트1.0~2.0(3.0미만)
+```java
+@GetMapping("/basic-objects")
+public String basicObjects(HttpSession session) {
+  session.setAttribute("sessionData", "Hello Session");
+  return "basic/basic-objects";
+}
+@Component("helloBean")
+static class HelloBean {
+  public String hello(String data) {
+    return "Hello " + data;
+  }
+}
+```
+* Controller 설정
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <h1>식 기본 객체 (Expression Basic Objects)</h1>
+    <ul>
+      <li>request = <span th:text="${#request}"></span></li>
+      <li>response = <span th:text="${#response}"></span></li>
+      <li>session = <span th:text="${#session}"></span></li>
+      <li>servletContext = <span th:text="${#servletContext}"></span></li>
+      <li>locale = <span th:text="${#locale}"></span></li>
+    </ul>
+    <h1>편의 객체</h1>
+    <ul>
+      <li>Request Parameter = <span th:text="${param.paramData}"></span></li>
+      <li>session = <span th:text="${session.sessionData}"></span></li>
+      <li>spring bean = <span th:text="${@helloBean.hello('Spring!')}"></span></
+    li>
+    </ul>
+  </body>
+</html>
+```
+* 원래라면 `request.getParameter("data")` 처럼 불편하게 접근해야하지만
+* 제공하는 기본객체인 `#request`를 사용하여 `HttpServletRequest` 객체를 제공받아 편하게 사용한다.
+
+### 6.3. 스프링부트 3.0 이상
+> 스프링부트 3.0 이상 부터는 이 기능이 Locale 제외하고는 사용할 수 없다.
+```java
+@GetMapping("/basic-objects")
+public String basicObjects(Model model, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+  session.setAttribute("sessionData", "Hello Session");
+  model.addAttribute("request", request);
+  model.addAttribute("response", response);
+  model.addAttribute("servletContext", request.getServletContext());
+  return "basic/basic-objects";
+}
+@Component("helloBean")
+static class HelloBean {
+  public String hello(String data) {
+    return "Hello " + data;
+  }
+}
+```
+* 직접 request, response, session을 모델에 담아서 뷰에 넘겨서 사용한다.
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <h1>식 기본 객체 (Expression Basic Objects)</h1>
+    <ul>
+      <li>request = <span th:text="${request}"></span></li>
+      <li>response = <span th:text="${response}"></span></li>
+      <li>session = <span th:text="${session}"></span></li>
+      <li>servletContext = <span th:text="${servletContext}"></span></li>
+      <li>locale = <span th:text="${#locale}"></span></li>
+    </ul>
+    <h1>편의 객체</h1>
+    <ul>
+      <li>Request Parameter = <span th:text="${param.paramData}"></span></li>
+      <li>session = <span th:text="${session.sessionData}"></span></li>
+      <li>spring bean = <span th:text="${@helloBean.hello('Spring!')}"></span></li>
+    </ul>
+  </body>
+</html>
+```
+* 위 결과와 같은 결과가 나온다.
 
 
 
