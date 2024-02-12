@@ -606,3 +606,248 @@ public String link(Model model) {
 * `first` , `last` :처음, 마지막 여부( `boolean` )
 * `current` : 현재 객체
 
+***
+# 11. 조건부 평가
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <h1>if, unless</h1>
+    <table border="1">
+      <tr>
+        <th>count</th>
+        <th>username</th>
+        <th>age</th>
+      </tr>
+      <tr th:each="user, userStat : ${users}">
+      <td th:text="${userStat.count}">1</td>
+      <td th:text="${user.username}">username</td>
+      <td>
+      <span th:text="${user.age}">0</span>
+      <span th:text="'미성년자'" th:if="${user.age lt 20}"></span>
+      <span th:text="'미성년자'" th:unless="${user.age ge 20}"></span>
+      </td>
+      </tr>
+    </table>
+    <h1>switch</h1>
+    <table border="1">
+      <tr>
+        <th>count</th>
+        <th>username</th>
+        <th>age</th>
+      </tr>
+      <tr th:each="user, userStat : ${users}">
+        <td th:text="${userStat.count}">1</td>
+        <td th:text="${user.username}">username</td>
+        <td th:switch="${user.age}">
+          <span th:case="10">10살</span>
+          <span th:case="20">20살</span>
+          <span th:case="*">기타</span>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+```
+##### **if, unless**
+* 타임리프는 해당 조건이 맞지 않으면 태그 자체를 렌더링하지 않는다.
+* 만약 다음 조건이 `false` 인 경우 `<span>...<span>` 부분 자체가 렌더링 되지 않고 사라진다.
+* `<span th:text="'미성년자'" th:if="${user.age lt 20}"></span>`
+##### **switch**
+* `*` 은 만족하는 조건이 없을 때 사용하는 디폴트이다.
+
+***
+# 12. 주석
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <h1>예시</h1>
+    <span th:text="${data}">html data</span>
+    <h1>1. 표준 HTML 주석</h1>
+    <!--
+    <span th:text="${data}">html data</span>
+    -->
+
+    <h1>2. 타임리프 파서 주석</h1>
+    <!--/* [[${data}]] */-->
+    <!--/*-->
+    <span th:text="${data}">html data</span>
+    <!--*/-->
+
+    <h1>3. 타임리프 프로토타입 주석</h1>
+    <!--/*/
+    <span th:text="${data}">html data</span>
+    /*/-->
+  </body>
+</html>
+```
+
+1. 표준 HTML 주석
+  + 자바스크립의 표준 HTML 주석은 타임리프가 렌더링 하지 않고, 그대로 남겨둔다.
+2. 타임리프 파서 주석
+  + 타임리프 파서 주석은 타임리프의 주석. 랜더링 부분에서 주석 부분을 제거해준다. 코드 검사시 주석부분이 보이지 않는다.
+3. 타임리프 프로토타입 주석
+  + HTML 파일을 웹브라우저에서 열었을 때는 랜더링하지 않는다.
+  + 하지만 타임리프 랜더링을 거치면 정상 랜더링된다.
+
+
+***
+# 13. 블록
+```html
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+
+    <th:block th:each="user : ${users}">
+      <div>
+      사용자 이름1 <span th:text="${user.username}"></span>
+      사용자 나이1 <span th:text="${user.age}"></span>
+      </div>
+      <div>
+      요약 <span th:text="${user.username} + ' / ' + ${user.age}"></span>
+      </div>
+    </th:block>
+
+  </body>
+</html>
+```
+* 사용 예시
+``` html
+<div>
+사용자 이름1 <span>userA</span>
+사용자 나이1 <span>10</span>
+</div>
+<div>
+요약 <span>userA / 10</span>
+</div>
+
+<div>
+사용자 이름1 <span>userB</span>
+사용자 나이1 <span>20</span>
+</div>
+<div>
+요약 <span>userB / 20</span>
+</div>
+
+<div>
+사용자 이름1 <span>userC</span>
+사용자 나이1 <span>30</span>
+</div>
+<div>
+요약 <span>userC / 30</span>
+</div>
+```
+* 실행 결과
+* `<th:block>` 은 렌더링시 제거된다.
+
+***
+# 14. 자바스크립트 인라인인
+##### 사용예시
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  </head>
+  <body>
+    <!-- 자바스크립트 인라인 사용 전 -->
+    <script>
+      var username = [[${user.username}]];
+      var age = [[${user.age}]];
+
+      //자바스크립트 내추럴 템플릿
+      var username2 = /*[[${user.username}]]*/ "test username";
+
+      //객체
+      var user = [[${user}]];
+    </script>
+
+      <!-- 자바스크립트 인라인 사용 후 -->
+    <script th:inline="javascript">
+      var username = [[${user.username}]];
+      var age = [[${user.age}]];
+
+      //자바스크립트 내추럴 템플릿
+      var username2 = /*[[${user.username}]]*/ "test username";
+
+      //객체
+      var user = [[${user}]];
+    </script>
+  </body>
+</html>
+```
+##### 자바스크립트 인라인 사용전 - 결과
+```html
+<script>
+var username = userA;
+var age = 10;
+//자바스크립트 내추럴 템플릿
+var username2 = /*userA*/ "test username";
+//객체
+var user = BasicController.User(username=userA, age=10);
+</script>
+```
+##### 자바스크립트 인라인 사용후 - 결과
+```html
+<script>
+var username = "userA";
+var age = 10;
+//자바스크립트 내추럴 템플릿
+var username2 = "userA";
+//객체
+var user = {"username":"userA","age":10};
+</script>
+```
+
+### 14.1. 텍스트 랜더링
+* `var username = [[${user.username}]];`
+  + 인라인 사용 전 ➡️ `var username = userA;`
+  + 인라인 사용 후 ➡️ `var username = "userA";`
+* 인라인 사용 전 렌더링 결과를 보면 `userA` 라는 변수 이름이 그대로 남아있다. 결과적으로 userA가 변수명으로 사용되어서 자바스크립트 오류가 발생한다. 다음으로 나오는 숫자 age의 경우에는 `"` 가 필요 없기 때문에 정상 렌더링 된다.
+* 인라인 사용 후 렌더링 결과를 보면 문자 타입인 경우 `"` 를 포함해준다. 추가로 자바스크립트에서 문제가 될 수 있는 문자가 포함되어 있으면 이스케이프 처리도 해준다. 예) `"` `\"`
+
+### 14.2. 자바스크립트 내추럴 템플릿
+* var username2 = `/*[[${user.username}]]*/ "test username";`
+  + 인라인 사용 전 ➡️ `var username2 = /*userA*/ "test username";`
+  + 인라인 사용 후 ➡️ `var username2 = "userA";`
+* 인라인 사용 전 결과를 보면 정말 순수하게 그대로 해석을 해버렸다. 따라서 내추럴 템플릿 기능이 동작하지 않고, 심지어 렌더링 내용이 주석처리 되어 버린다.
+* 인라인 사용 후 결과를 보면 주석 부분이 제거되고, 기대한 "userA"가 정확하게 적용된다.
+
+### 14.3. 객체
+* `var user = [[${user}]];`
+  + 인라인 사용 전 ➡️ `var user = BasicController.User(username=userA, age=10);`
+  + 인라인 사용 후 ➡️ `var user = {"username":"userA","age":10};`
+* 인라인 사용 전은 객체의 toString()이 호출된 값이다.
+* 인라인 사용 후는 객체를 JSON으로 변환해준다.
+
+### 14.4. 자바스크립트 인라인 each
+##### 자바스크립트 인라인 each 사용 예시
+```html
+<script th:inline="javascript">
+  [# th:each="user, stat : ${users}"]
+  var user[[${stat.count}]] = [[${user}]];
+  [/]
+</script>
+```
+
+##### 자바스크립트 인라인 each 결과
+```html
+<script>
+  var user1 = {"username":"userA","age":10};
+  var user2 = {"username":"userB","age":20};
+  var user3 = {"username":"userC","age":30};
+</script>
+```
